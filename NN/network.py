@@ -11,7 +11,7 @@ class Network(object):
         self.num_layers = len(sizes)
         self.sizes = sizes
         # randn产生的是标准正态分布的数
-        self._b = [np.random.randn() for y in sizes[1:]]
+        self._b = [np.random.randn(y, 1) for y in sizes[1:]]
         self._w = [np.random.randn(y, x)
                    for x, y in zip(sizes[:-1], sizes[1:])]
 
@@ -36,7 +36,7 @@ class Network(object):
             test_data = list(test_data)
             n_test = len(test_data)
 
-        for _ in range(epochs):
+        for j in range(epochs):
             # 将数据集打乱
             random.shuffle(train_data)
             # 数据集分批
@@ -49,6 +49,10 @@ class Network(object):
                 self.update_mini_batch(batch, learn_rate)
             # if test_data:
             #     print("")
+            if test_data:
+                print("Epoch {} : {} / {}".format(j,self.evaluate(test_data),n_test));
+            else:
+                print("Epoch {} complete".format(j))
 
     def update_mini_batch(self, batch, rate):
         # 初始化
@@ -57,6 +61,13 @@ class Network(object):
         for x, y in batch:
             # 返回该点求得的整个神经网络的梯度
             delta_nb , delta_nw = self.backprop(x, y)
+            ndelta_b = [nb+dnb for nb, dnb in zip(ndelta_b, delta_nb)]
+            ndelta_w = [nw+dnw for nw, dnw in zip(ndelta_w, delta_nw)]
+        # 将该批的每一个点的梯度相加求平均值
+        self._w = [w-(rate/len(batch))*nw
+                   for w, nw in zip(self._w, ndelta_w)]
+        self._b = [b-(rate/len(batch))*nb
+                   for b, nb in zip(self._b, ndelta_b)]
 
     # 返回该点求得的整个神经网络的梯度
     def backprop(self, x, y):
@@ -93,9 +104,23 @@ class Network(object):
             ndelta_w[-back_index] = np.dot(delta, activations[-back_index - 1].T)
         return (ndelta_b, ndelta_w)
 
+    def evaluate(self, test_data):
+        """Return the number of test inputs for which the neural
+        network outputs the correct result. Note that the neural
+        network's output is assumed to be the index of whichever
+        neuron in the final layer has the highest activation."""
+        test_results = [(np.argmax(self.feedforward(x)), y)
+                        for (x, y) in test_data]
+        return sum(int(x == y) for (x, y) in test_results)
 
     def cost_derivative(self, output_activations, y):
         return (output_activations-y)
+
+    def feedforward(self, a):
+        """Return the output of the network if ``a`` is input."""
+        for b, w in zip(self._b, self._w):
+            a = sigmoid(np.dot(w, a)+b)
+        return a
 #### Miscellaneous functions
 def sigmoid(z):
     """The sigmoid function."""
