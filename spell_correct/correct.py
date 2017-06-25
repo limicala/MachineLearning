@@ -8,7 +8,7 @@ def words(text):
 
 WORDS = Counter(words(open("big.txt").read()))
 
-print(WORDS.values())
+# print(WORDS)
 
 def P(word, ncount=sum(WORDS.values())):
     # P(A)
@@ -17,11 +17,19 @@ def P(word, ncount=sum(WORDS.values())):
 
 
 def correction(word):
-    return max(candidates(word), P)
+    return max(candidates(word), key=P)
 
 def candidates(word):
     # 候选集合
-    return None
+    # 如果word是正确的单词，则返回该单词
+    if known([word]):
+        return word
+    if known(edits1(word)):
+        return known(edits1(word))
+    elif known(edits2(word)):
+        return known(edits2(word))
+    # 上面这几行的作用等于下面这句，作者写的比较简洁
+    # return known([word]) or known(edits1(word)) or known(edits2())
 
 def known(words):
     # 过滤words集合中不是单词的元素
@@ -36,8 +44,25 @@ def edits1(word):
     :return:
     """
     letters = "abcdefghijklmnopqrstuvwxyz"
-    pass
+    splits = [(word[:i], word[i:]) for i in range(len(word) + 1)]
+    # 删除一个字符
+    deletes = [L + R[1:] for L, R in splits if R]
+    # 置换字符
+    transposes = [L + R[1] + R[0] + R[2:] for L, R in splits if len(R) > 1]
+    # 修改
+    replaces = [L + letter + R[1:] for L, R in splits if R for letter in letters]
+    # 增加
+    inserts = [L + letter + R for L, R in splits for letter in letters]
+
+    return set(deletes + transposes + replaces + inserts)
 
 def edits2(word):
-    pass
+    """
+    返回与word编辑距离为1的所有结果
+    :param word:
+    :return:
+    """
+    return (e2 for e1 in edits1(word) for e2 in edits1(e1))
 
+print(correction("finsh"))
+print(correction("finiish"))

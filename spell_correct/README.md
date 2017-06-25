@@ -33,6 +33,9 @@ P(A)的概率可以看作是一篇文章里面单词A出现的概率
 
 具体实现看作者[博客链接](http://norvig.com/spell-correct.html)
 
+# 尝试
+之后再试着通过训练***错误输入***的数据集的方式优化
+
 # 相关链接
 [How to Write a Spelling Corrector](http://norvig.com/spell-correct.html)
 
