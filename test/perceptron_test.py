@@ -1,6 +1,6 @@
+from other.perceptron import Perceptron
 from util import gen_two_clusters, visualize2d
-from perceptron import Perceptron
-import numpy as np
+
 data, labels = gen_two_clusters(size=20000)
 
 perceptron = Perceptron()
